@@ -9,4 +9,4 @@ Korzystając z tych narzędzi zaimplementuję następujące funkcje:
  - void thread_create(void func(void *), void *arg) - do tworzenia nowego wątku, który będzie wykonywał funkcję, podaną w pierwszym argumencie i przekaże do niej argumenty, które będą podane dalej
  - int thread_mutex_init(unsigned int lock) - funkcja, która tworzy mutex
  - int thread_mutex_lock(unsigned int lock) - funkcja, która ustawia mutex na aktualny proces.
- - void thread_mutex_unlock(unsigned int lock) - funkcja, która zdejmuje mutex z aktualnego procesu.
+ - int thread_mutex_unlock(unsigned int lock) - funkcja, która zdejmuje mutex z aktualnego procesu.
