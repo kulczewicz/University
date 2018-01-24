@@ -8,17 +8,37 @@
 
 ucontext_t T1, T2,Main;
 ucontext_t a;
+unsigned int indexOfCurrentContext = 0;
 
-std::queue<ucontext_t*> ready_queue;
+// std::queue<ucontext_t*> ready_queue;
 
-void task_create(void (*f)())
+void task_create(void (*f)(), ucontext_t a, std::queue<ucontext_t*> queue)
 {
-	ucontext_t a;
 	getcontext(&a);
 	makecontext(&a, f, 0);
-	ready_queue.push(&a);
+	queue.push(&a);
 }
 
+
+void schedule(std::queue<ucontext_t*> q)
+{
+	ucontext_t c1 = *q.front();
+	q.pop();
+	q.push(&c1);
+	ucontext_t c2 = *q.front();
+	q.pop();
+	q.push(&c2);
+	if (indexOfCurrentContext == q.size())
+	{
+		swapcontext(&c1, &c2);
+		indexOfCurrentContext = 0;
+	}
+	else
+	{
+		swapcontext(&queue[indexOfCurrentContext], &queue[indexOfCurrentContext+1]);
+		indexOfCurrentContext++;
+	}
+}
 
 int fn1()
 {
@@ -28,7 +48,7 @@ int fn1()
 void fn2()
 {
 	printf("this is from 2\n");
-	setcontext( &a);
+	setcontext(&a);
 	printf("finished 1\n");
 }
 void start()
@@ -43,7 +63,18 @@ void start()
 
 int main()
 {
-	task_create(fn2);
+	std::queue<ucontext_t*> queue;
+	ucontext_t a;
+	task_create(fn2, a, queue);
+	
+	/*struct sigaction act;
+	act.sa_handler = schedule;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGINT, &act, NULL);*/
+	
+
+
 	/*start();
 	printf("after start\n");
 	getcontext(&Main);
