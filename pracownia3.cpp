@@ -13,7 +13,7 @@ unsigned int indexOfCurrentContext = 0;
 int count = 0;
 ucontext_t* context_array[10000];
 
-void task_create(void (*f)(), ucontext_t* a)
+void thread_create(void (*f)(), ucontext_t* a)
 {
 	getcontext(a);
 	a->uc_link=0;
@@ -105,8 +105,8 @@ void init_threads()
 int main()
 {
 	ucontext_t c1, c2, c3;
-	task_create(fn1, &c1);
-	task_create(fn2, &c2);
-	task_create(fn3, &c3);
+	thread_create(fn1, &c1);s
+	thread_create(fn2, &c2);
+	thread_create(fn3, &c3);
 	init_threads();
 }
