@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <ucontext.h>
 #include <unistd.h>
-#include <queue>
 #include <signal.h>
 #include <sys/time.h>
 
@@ -12,7 +11,7 @@ unsigned int lengthOfArray = 0;
 unsigned int indexOfCurrentContext = 0;
 
 int count = 0;
-ucontext_t* ready_array[10000];
+ucontext_t* context_array[10000];
 
 void task_create(void (*f)(), ucontext_t* a)
 {
@@ -22,7 +21,7 @@ void task_create(void (*f)(), ucontext_t* a)
 	a->uc_stack.ss_size=MEM;
 	a->uc_stack.ss_flags=0;
 	makecontext(a, f, 0);
-	ready_array[lengthOfArray] = a;
+	context_array[lengthOfArray] = a;
 	lengthOfArray++;
 	printf("%d\n", lengthOfArray);
 }
@@ -60,29 +59,29 @@ void schedule(int sig)
 	{
 		++count;
 		printf("First signal!\n");
-		setcontext(ready_array[0]);
+		setcontext(context_array[0]);
 	}
 	printf("signal occurred %d times\n", ++count);
 	if (lengthOfArray>1)
 	{
-		getcontext(ready_array[indexOfCurrentContext]);
+		getcontext(context_array[indexOfCurrentContext]);
 		if (indexOfCurrentContext==lengthOfArray-1)
 		{
 			printf("Last element\n");
 			indexOfCurrentContext=0;
-			swapcontext(ready_array[lengthOfArray-1], ready_array[indexOfCurrentContext]);
+			swapcontext(context_array[lengthOfArray-1], context_array[indexOfCurrentContext]);
 		}
 		else
 		{
 			printf("Another element\n");
 			indexOfCurrentContext++;
-			swapcontext(ready_array[indexOfCurrentContext-1], ready_array[indexOfCurrentContext]);
+			swapcontext(context_array[indexOfCurrentContext-1], context_array[indexOfCurrentContext]);
 		}
 	}
 	else
 	{
 		printf("Only element\n");
-		setcontext(ready_array[0]);
+		setcontext(context_array[0]);
 	}
 }
 
