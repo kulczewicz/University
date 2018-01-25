@@ -3,97 +3,112 @@
 #include <ucontext.h>
 #include <unistd.h>
 #include <queue>
+#include <signal.h>
+#include <sys/time.h>
 
-#define MEM 64000
+#define MEM 100000
 
-ucontext_t T1, T2,Main;
-ucontext_t a;
+unsigned int lengthOfArray = 0;
 unsigned int indexOfCurrentContext = 0;
 
-// std::queue<ucontext_t*> ready_queue;
+int count = 0;
+std::queue<ucontext_t*> ready_queue;
+ucontext_t* ready_array[10000];
 
-void task_create(void (*f)(), ucontext_t a, std::queue<ucontext_t*> queue)
+void task_create(void (*f)(), ucontext_t* a)
 {
-	getcontext(&a);
-	makecontext(&a, f, 0);
-	queue.push(&a);
+	getcontext(a);
+	a->uc_link=0;
+	a->uc_stack.ss_sp=malloc(MEM);
+	a->uc_stack.ss_size=MEM;
+	a->uc_stack.ss_flags=0;
+	makecontext(a, f, 0);
+	ready_array[lengthOfArray] = a;
+	lengthOfArray++;
+	printf("%d\n", lengthOfArray);
 }
 
-
-void schedule(std::queue<ucontext_t*> q)
+void fn1()
 {
-	ucontext_t c1 = *q.front();
-	q.pop();
-	q.push(&c1);
-	ucontext_t c2 = *q.front();
-	q.pop();
-	q.push(&c2);
-	if (indexOfCurrentContext == q.size())
+	for (int i=0; i<1000; i++)
 	{
-		swapcontext(&c1, &c2);
-		indexOfCurrentContext = 0;
+		printf("this is %i element from 1 thread\n", i);
+		usleep(2000);
+	}
+}
+
+void fn2()
+{
+	for (int i=0; i<1000; i++)
+	{
+		printf("this is %i element from 2 thread\n", i);
+		usleep(2000);
+	}
+}
+
+void fn3()
+{
+	for (int i=0; i<1000; i++)
+	{
+		printf("this is %i element from 3 thread\n", i);
+		usleep(2000);	
+	}
+}
+
+void schedule(int sig)
+{
+	if (count == 0)
+	{
+		++count;
+		printf("First signal!\n");
+		setcontext(ready_array[0]);
+	}
+	printf("signal occurred %d times\n", ++count);
+	if (lengthOfArray>1)
+	{
+		getcontext(ready_array[indexOfCurrentContext]);
+		if (indexOfCurrentContext==lengthOfArray-1)
+		{
+			printf("Last element\n");
+			indexOfCurrentContext=0;
+			swapcontext(ready_array[lengthOfArray-1], ready_array[indexOfCurrentContext]);
+		}
+		else
+		{
+			printf("Another element\n");
+			indexOfCurrentContext++;
+			swapcontext(ready_array[indexOfCurrentContext-1], ready_array[indexOfCurrentContext]);
+		}
 	}
 	else
 	{
-		swapcontext(&queue[indexOfCurrentContext], &queue[indexOfCurrentContext+1]);
-		indexOfCurrentContext++;
+		printf("Only element\n");
+		setcontext(ready_array[0]);
 	}
 }
 
-int fn1()
+void init_threads()
 {
-	printf("this is from 1\n");
-	setcontext(&Main);
-}
-void fn2()
-{
-	printf("this is from 2\n");
-	setcontext(&a);
-	printf("finished 1\n");
-}
-void start()
-{
-	getcontext(&a);
-	a.uc_link=0;
-	a.uc_stack.ss_sp=malloc(MEM);
-	a.uc_stack.ss_size=MEM;
-	a.uc_stack.ss_flags=0;
-	makecontext(&a, (void (*)())&fn1, 0);
+	struct itimerval it;
+	struct sigaction act, oact;
+	act.sa_handler = schedule;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+
+	sigaction(SIGPROF, &act, &oact);
+	it.it_interval.tv_sec = 0;
+	it.it_interval.tv_usec = 10;
+	it.it_value.tv_sec = 0;
+	it.it_value.tv_usec = 10;
+	setitimer(ITIMER_PROF, &it, NULL);
+	for ( ; ; ) ;
 }
 
 int main()
 {
-	std::queue<ucontext_t*> queue;
-	ucontext_t a;
-	task_create(fn2, a, queue);
-	
-	/*struct sigaction act;
-	act.sa_handler = schedule;
-	sigemptyset(&act.sa_mask);
-	act.sa_flags = 0;
-	sigaction(SIGINT, &act, NULL);*/
-	
-
-
-	/*start();
-	printf("after start\n");
-	getcontext(&Main);
-	getcontext(&T1);
-	T1.uc_link=0;
-	T1.uc_stack.ss_sp=malloc(MEM);
-	T1.uc_stack.ss_size=MEM;
-	T1.uc_stack.ss_flags=0;
-	makecontext(&T1, (void (*)())&fn1, 0);
-	swapcontext(&Main, &T1);
-	usleep(1000);
-	printf("after swapcontext\n");
-	getcontext(&T2);
-	T2.uc_link=0;
-	T2.uc_stack.ss_sp=malloc(MEM);
-	T2.uc_stack.ss_size=MEM;
-	T2.uc_stack.ss_flags=0;
-	makecontext(&T2, (void (*)())&fn2, 0);
-	swapcontext(&Main, &T2);
-	printf("completed\n");
-	exit(0);*/
+	ucontext_t c1, c2, c3;
+	task_create(fn1, &c1);
+	task_create(fn2, &c2);
+	task_create(fn3, &c3);
+	init_threads();
 }
