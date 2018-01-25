@@ -12,7 +12,6 @@ unsigned int lengthOfArray = 0;
 unsigned int indexOfCurrentContext = 0;
 
 int count = 0;
-std::queue<ucontext_t*> ready_queue;
 ucontext_t* ready_array[10000];
 
 void task_create(void (*f)(), ucontext_t* a)
