@@ -40,7 +40,7 @@ void fn2()
 	for (int i=0; i<1000; i++)
 	{
 		printf("this is %i element from 2 thread\n", i);
-		usleep(1000+1000);
+		usleep(2000);
 	}
 }
 
