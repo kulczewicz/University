@@ -40,7 +40,7 @@ void fn2()
 	for (int i=0; i<1000; i++)
 	{
 		printf("this is %i element from 2 thread\n", i);
-		usleep(2000);
+		usleep(1000+1000);
 	}
 }
 
@@ -105,7 +105,7 @@ void init_threads()
 int main()
 {
 	ucontext_t c1, c2, c3;
-	thread_create(fn1, &c1);s
+	thread_create(fn1, &c1);
 	thread_create(fn2, &c2);
 	thread_create(fn3, &c3);
 	init_threads();
