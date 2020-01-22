@@ -1,0 +1,25 @@
+{
+  "name": "myapp",
+  "version": "1.0.0",
+  "description": "App, scrapping exchange rate from euro to polish zloty to database",
+  "main": "index.js",
+  "scripts": {
+    "write": "node write.js",
+    "schedule": "node scheduler.js",
+    "api": "node api.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Oleś Kulczewicz",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "install": "^0.13.0",
+    "mysql": "^2.17.1",
+    "node-cron": "^2.0.3",
+    "node-fetch": "^2.6.0",
+    "node-html-parser": "^1.1.16",
+    "npm": "^6.13.4",
+    "pg": "^7.17.1"
+  }
+}
