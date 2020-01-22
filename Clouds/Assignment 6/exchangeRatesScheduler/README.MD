@@ -12,7 +12,7 @@ CREATE TABLE eur_pln (id SERIAL PRIMARY KEY, buying_rate REAL, selling_rate REAL
 Beside that, create `.env` from `.env_example` and fill it with values.
 
 ## Description
-This is a simple node.js app, which contains of three parts:
+This is a simple node.js app, which consists of three parts:
 - an app, which downloads exchange rates from eur to pln from website 
 `https://cinkciarz.pl/wymiana-walut/kursy-walut-cinkciarz-pl/eur/pln/` and writes them to database (PostgreSQL is used). Both buying and selling rates are written. In order to run it type
 	```sh
